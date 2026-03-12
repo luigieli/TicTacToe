@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"tictactoe/internal/domain/dto"
 	"tictactoe/internal/domain/models"
 	"tictactoe/internal/ports"
@@ -21,11 +22,6 @@ func NewGameHandler(service ports.GameService) *GameHandler {
 
 // CreateGame handles the POST /game request.
 func (h *GameHandler) CreateGame(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	gameID, err := h.service.CreateGame(r.Context())
 	if err != nil {
 		h.respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -37,14 +33,7 @@ func (h *GameHandler) CreateGame(w http.ResponseWriter, r *http.Request) {
 
 // GetGameState handles the GET /game/{id} request.
 func (h *GameHandler) GetGameState(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// For simplicity, we'll get the ID from the query param "id"
-	// In a real app, we'd use a router like mux or chi for URL params.
-	id := r.URL.Query().Get("id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		h.respondWithError(w, http.StatusBadRequest, "game id is required")
 		return
@@ -65,8 +54,9 @@ func (h *GameHandler) GetGameState(w http.ResponseWriter, r *http.Request) {
 
 // MakeMove handles the POST /move request.
 func (h *GameHandler) MakeMove(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		h.respondWithError(w, http.StatusBadRequest, "game id is required")
 		return
 	}
 
@@ -75,6 +65,7 @@ func (h *GameHandler) MakeMove(w http.ResponseWriter, r *http.Request) {
 		h.respondWithError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+	req.GameID = id
 
 	game, err := h.service.MakeMove(r.Context(), req)
 	if err != nil {
