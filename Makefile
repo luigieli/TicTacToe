@@ -29,4 +29,4 @@ test-infra:
 	@echo "Testing Frontend (8082)..."
 	@curl -s -o /dev/null -w "%{http_code}" http://localhost:8082 | grep 200 > /dev/null && echo "Frontend is UP" || (echo "Frontend is DOWN" && exit 1)
 	@echo "Testing Backend (8083)..."
-	@curl -s http://localhost:8083/game -X POST | grep "game_id" > /dev/null && echo "Backend is UP" || (echo "Backend is DOWN" && exit 1)
+	@curl -s http://localhost:8083/games -X POST | grep "game_id" > /dev/null && echo "Backend is UP" || (echo "Backend is DOWN" && exit 1)
